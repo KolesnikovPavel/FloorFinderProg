@@ -55,7 +55,7 @@ namespace FloorFinder
             string pattern = @"(\w*)й.этаж(\w*)|(\w*)м.этаж(\w*)| \d*.этаж(\w*)|\d*\/\d*.этаж(\w*)|\d*\S*й.этаж(\w*)|\d*\S*м.этаж(\w*)";
             Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
             MatchCollection matches = regex.Matches(s);
-            if (matches.Count == 1 && File.Exists(newCsvPath)) //второе условие имеет смысл?
+            if (matches.Count == 1 && File.Exists(newCsvPath))
                 FloorFound(s, matches, newCsvPath);
             else
                 FloorNotFound(s, newCsvPath);
@@ -63,42 +63,72 @@ namespace FloorFinder
 
         static void Main()
         {
-            //Объявление переменных
-            var lineCounter = 0;
-            var numberOfLinesToProcess = 10;
-            //Объявление путей к файлам
-            var csvPath = @"C:\Users\Pavel\source\repos\FloorFinderProg\out_processed_floor.csv";
-            var newCsvPath = @"C:\Users\Pavel\source\repos\FloorFinderProg\processed_floor.csv";
-            string fields = null;
-            //Очистка файла в который будут записываться новые значения
-            File.WriteAllText(newCsvPath, String.Empty);
-            //Буфер представлен в виде списка
-            List<string> List = new List<string>();
-            //Чтение из старого файла
-            using (TextFieldParser tfp = new TextFieldParser(csvPath))
+            int pathCheck = 1;
+            while (pathCheck == 1)
             {
-                tfp.TextFieldType = FieldType.Delimited;
-                tfp.SetDelimiters(",");
-                //Цикл который обеспечивает обработку из старого файла 10 строк за каждую итерацию
-                while ((lineCounter < numberOfLinesToProcess) && (!tfp.EndOfData))
+                //Запрос для ввода пути к исходному файлу
+                Console.WriteLine("Введите путь исходного csv файла: ");
+                Console.WriteLine(@"Пример ввода: C:\Users\out_processed_floor");
+                var csvPath = Console.ReadLine() + ".csv";
+                //Проверка существования файла по указанному пути
+                if (File.Exists(csvPath))
                 {
-                    //Цикл для записи из старого файла 10 строк в буфер
-                    for (; lineCounter < numberOfLinesToProcess && !tfp.EndOfData; lineCounter++)
-                        //Запись 10 строк из старого файла в буфер
-                        List.Add(fields = tfp.ReadLine());
-                    //Обработка 10 строк и запись их в новый файл
-                    if (lineCounter <= numberOfLinesToProcess)
+                    //Запрос для ввода пути к новому файлу
+                    pathCheck++;
+                    Console.WriteLine("\nНовый файл будет создан в той же папке где лежит исходный файл");
+                    Console.WriteLine("Введите название для нового csv файла: ");
+                    var newCsvPath = Path.GetDirectoryName(csvPath) + @"\" + Console.ReadLine() + @".csv";
+                    //Объявление переменных
+                    var lineCounter = 0;
+                    var numberOfLinesToProcess = 10;
+                    string fields = null;
+                    //Очистка файла в который будут записываться новые значения
+                    File.WriteAllText(newCsvPath, String.Empty);
+                    //Буфер представлен в виде списка
+                    List<string> List = new List<string>();
+                    //Чтение из старого файла
+                    using (TextFieldParser tfp = new TextFieldParser(csvPath))
                     {
-                        foreach (var line in List)
-                            RegularExspression(line, newCsvPath);
-                        //Очистка буфера
-                        List.Clear();
-                        //
-                        if (lineCounter == numberOfLinesToProcess)
-                            numberOfLinesToProcess = numberOfLinesToProcess + 10;
+                        tfp.TextFieldType = FieldType.Delimited;
+                        tfp.SetDelimiters(",");
+                        //Цикл который обеспечивает обработку из старого файла 10 строк за каждую итерацию
+                        while ((lineCounter < numberOfLinesToProcess) && (!tfp.EndOfData))
+                        {
+                            //Цикл для записи из старого файла 10 строк в буфер
+                            for (; lineCounter < numberOfLinesToProcess && !tfp.EndOfData; lineCounter++)
+                                //Запись 10 строк из старого файла в буфер
+                                List.Add(fields = tfp.ReadLine());
+                            //Обработка 10 строк и запись их в новый файл
+                            if (lineCounter <= numberOfLinesToProcess)
+                            {
+                                foreach (var line in List)
+                                    RegularExspression(line, newCsvPath);
+                                //Очистка буфера
+                                List.Clear();
+                                //
+                                if (lineCounter == numberOfLinesToProcess)
+                                    numberOfLinesToProcess = numberOfLinesToProcess + 10;
+                            }
+                        }
                     }
+                    Console.Clear();
+                    Console.WriteLine("Значения этажей добавлены в новый файл");
+                }
+                //Вывод программы в случае неправильного ввода пути 
+                else
+                {
+                    Console.WriteLine("Файл не был найден!");
+                    Console.WriteLine("Ввести путь файла заново? (1 - да, 2 - нет)");
+                    pathCheck = Convert.ToInt32(Console.ReadLine());
+                    while (pathCheck != 1 && pathCheck != 2)
+                    {
+                        Console.WriteLine("неправильный ввод");
+                        Console.WriteLine("Ввести путь файла заново? (1 - да, 2 - нет)");
+                        pathCheck = Convert.ToInt32(Console.ReadLine());
+                    }
+                    Console.Clear();
                 }
             }
         }
     }
-}
+}   
